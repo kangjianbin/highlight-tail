@@ -421,16 +421,18 @@ One tick every 3 seconds.")
   "Create or update overlays.
 This is called by `highlight-tail-post-command'."
   (when highlight-tail-posterior-type
-    (if (eq highlight-tail-posterior-type 'const)
-        (progn
-          ;; first run - make overlays
-          (unless highlight-tail-const-overlays-list
-            (highlight-tail-make-const-overlays-list))
-          ;; done
-          (highlight-tail-update-const-overlays-list))
-      ;; not const highlighting - make new overlay in the current place
-      ;; with face-value of 1 (brightest)
-      (highlight-tail-make-new-overlay))))
+    (progn
+      (highlight-tail-start-fading-timer)
+      (if (eq highlight-tail-posterior-type 'const)
+          (progn
+            ;; first run - make overlays
+            (unless highlight-tail-const-overlays-list
+              (highlight-tail-make-const-overlays-list))
+            ;; done
+            (highlight-tail-update-const-overlays-list))
+        ;; not const highlighting - make new overlay in the current place
+        ;; with face-value of 1 (brightest)
+        (highlight-tail-make-new-overlay)))))
 
 (defun highlight-tail-post-command ()
   "Check for the last command and decide to refresh highlighting or not."
@@ -680,7 +682,8 @@ This is called every `highlight-tail-timer' amount of time."
   (when highlight-tail-posterior-type
     (if (eq highlight-tail-posterior-type 'const)
         ;; if const highlighting
-        (when highlight-tail-const-overlays-list
+        (if (not highlight-tail-const-overlays-list)
+            (highlight-tail-stop-fading-timer)
           (let ((iterator 0))
             ;; iterate through elements of `highlight-tail-const-overlays-list'
             (while (< iterator highlight-tail-const-width)
@@ -706,7 +709,8 @@ This is called every `highlight-tail-timer' amount of time."
 
                 (setq iterator (1+ iterator))))))
       ;; if not const-highlighting
-      (when (> (hash-table-count highlight-tail-overlays-hash) 0)
+      (if (<= (hash-table-count highlight-tail-overlays-hash) 0)
+          (highlight-tail-stop-fading-timer)
         (maphash 'highlight-tail-fade-out-step-process-overlay
                  highlight-tail-overlays-hash)))))
       
@@ -929,14 +933,32 @@ length of colors-fade-table from COLORS-FADE-TABLE-WITH-KEY"
           highlight-tail-face-max nil)
     (highlight-tail-cancel-timers)))
 
+(defun highlight-tail-start-fading-timer ()
+  (if (not highlight-tail-fading-timer)
+      (setq highlight-tail-fading-timer
+            (if (featurep 'xemacs)
+                (start-itimer "highlight-tail-fade-out-step"
+                              'highlight-tail-fade-out-step
+                              highlight-tail-timer
+                              highlight-tail-timer)
+              (run-at-time nil highlight-tail-timer
+                           'highlight-tail-fade-out-step)))))
+
+(defun highlight-tail-stop-fading-timer ()
+    (if (featurep 'xemacs)
+        (when (itimerp highlight-tail-fading-timer)
+          (delete-itimer highlight-tail-fading-timer))
+      (when (timerp highlight-tail-fading-timer)
+        (cancel-timer highlight-tail-fading-timer)))
+    (setq highlight-tail-fading-timer nil))
+
 (defun highlight-tail-cancel-timers ()
   "Cancel timers"
+  (highlight-tail-stop-fading-timer)
   (if (featurep 'xemacs)
       (when (itimerp highlight-tail-fading-timer)
-        (delete-itimer highlight-tail-fading-timer)
         (delete-itimer highlight-tail-defaultbgcolor-timer))
     (when (timerp highlight-tail-fading-timer)
-      (cancel-timer highlight-tail-fading-timer)
       (cancel-timer highlight-tail-defaultbgcolor-timer))))
 
 (defsubst highlight-tail-overlays-hash-delete-overlay-map (key value)
@@ -1047,15 +1069,6 @@ Run it, when you've made changes to some highlight-tail-mode variables."
   (setq highlight-tail-face-max highlight-tail-steps)
   (highlight-tail-make-faces
    (highlight-tail-get-colors-fade-table-with-key 'default))
-  
-  (setq highlight-tail-fading-timer
-        (if (featurep 'xemacs)
-            (start-itimer "highlight-tail-fade-out-step"
-                          'highlight-tail-fade-out-step
-                          highlight-tail-timer
-                          highlight-tail-timer)
-          (run-at-time nil highlight-tail-timer
-                       'highlight-tail-fade-out-step)))
   (setq highlight-tail-defaultbgcolor-timer
         (if (featurep 'xemacs)
             (start-itimer "highlight-tail-check-if-defaultbgcolor-changed"
