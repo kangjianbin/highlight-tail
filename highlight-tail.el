@@ -547,7 +547,8 @@ that if there is ht's overlay at at the top then return 'default"
     ;; remove any highlight-tail's overlays at point
     (let ((overlays-at-start-point (highlight-tail-overlays-at start-point))
           highlight-tail-overlay)
-      (mapcar (lambda (overlay)
+
+      (mapc (lambda (overlay)
                  (when (highlight-tail-overlay-get overlay 'highlight-tail)
                    (setq highlight-tail-overlay overlay)))
               overlays-at-start-point)
@@ -1045,9 +1046,9 @@ Run it, when you've made changes to some highlight-tail-mode variables."
          (percents-vector (make-vector colors-with-100-length nil))
          ;; below: scaled to `highlight-tail-steps'
          (percents-vector-scaled (make-vector colors-with-100-length nil)))
-    (setq percents-vector (mapc (lambda (elem)
-                                  (cdr elem))
-                                highlight-tail-colors-with-100))
+    (setq percents-vector (mapcar (lambda (elem)
+                                    (cdr elem))
+                                  highlight-tail-colors-with-100))
     (setq highlight-tail-stepsperfade-vector
           (make-vector (1- colors-with-100-length) nil))
     (setq iter 0)
