@@ -914,6 +914,7 @@ length of colors-fade-table from COLORS-FADE-TABLE-WITH-KEY"
 (defun highlight-tail-tide-up ()
   "Delete all overlays, cancel timers, and so on (clean up)..."
   (let ((count 0))
+    (remove-hook 'post-command-hook 'highlight-tail-post-command)
     (when (hash-table-p highlight-tail-overlays-hash)
       (maphash 'highlight-tail-overlays-hash-delete-overlay-map
                highlight-tail-overlays-hash)
