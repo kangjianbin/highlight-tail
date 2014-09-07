@@ -968,6 +968,7 @@ length of colors-fade-table from COLORS-FADE-TABLE-WITH-KEY"
 
 (defun highlight-tail-reload ()
   (interactive)
+  (highlight-tail-mode 0)
   (highlight-tail-mode 1))
 
 (defun highlight-tail-start ()
