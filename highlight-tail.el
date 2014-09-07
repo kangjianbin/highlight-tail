@@ -957,9 +957,9 @@ length of colors-fade-table from COLORS-FADE-TABLE-WITH-KEY"
   "Cancel timers"
   (highlight-tail-stop-fading-timer)
   (if (featurep 'xemacs)
-      (when (itimerp highlight-tail-fading-timer)
+      (when (itimerp highlight-tail-defaultbgcolor-timer)
         (delete-itimer highlight-tail-defaultbgcolor-timer))
-    (when (timerp highlight-tail-fading-timer)
+    (when (timerp highlight-tail-defaultbgcolor-timer)
       (cancel-timer highlight-tail-defaultbgcolor-timer))))
 
 (defsubst highlight-tail-overlays-hash-delete-overlay-map (key value)
