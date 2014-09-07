@@ -1007,7 +1007,7 @@ Run it, when you've made changes to some highlight-tail-mode variables."
          nil
          ;; create a list of "t"s, color lists '(red 255 0 0) and nils
          ;; in place of colors that doesn't exist
-         (mapcar
+         (mapc
           (lambda (elem)
              (let ((color-name (car elem)))
                (if (highlight-tail-color-in-hex-format color-name)
@@ -1044,9 +1044,9 @@ Run it, when you've made changes to some highlight-tail-mode variables."
          (percents-vector (make-vector colors-with-100-length nil))
          ;; below: scaled to `highlight-tail-steps'
          (percents-vector-scaled (make-vector colors-with-100-length nil)))
-    (setq percents-vector (mapcar (lambda (elem)
-                                     (cdr elem))
-                                  highlight-tail-colors-with-100))
+    (setq percents-vector (mapc (lambda (elem)
+                                  (cdr elem))
+                                highlight-tail-colors-with-100))
     (setq highlight-tail-stepsperfade-vector
           (make-vector (1- colors-with-100-length) nil))
     (setq iter 0)
